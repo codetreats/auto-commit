@@ -1,0 +1,19 @@
+{
+  "name": "auto-commit-scanner",
+  "version": "1.0.0",
+  "description": "Git repository scanner",
+  "main": "scan-repos.ts",
+  "scripts": {
+    "start": "ts-node scan-repos.ts"
+  },
+  "dependencies": {
+    "simple-git": "^3.22.0",
+    "fs-extra": "^11.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/fs-extra": "^11.0.4",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}

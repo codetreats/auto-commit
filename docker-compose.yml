@@ -1,0 +1,35 @@
+services:
+  auto-commit:
+    networks:
+      - default_network
+    hostname: auto-commit
+    container_name: auto-commit
+    image: auto-commit:master
+    environment:
+      - HOST_HOSTNAME=${HOST_HOSTNAME}
+      - MONITOR_HOST=${MONITOR_HOST}
+      - MONITOR_UPDATE=${MONITOR_UPDATE}
+      - MONITOR_URL=${MONITOR_URL}
+      - MONITOR_SECRET=${MONITOR_SECRET}
+      - MONITOR_SRC=pipeline.codetreats.auto-commit
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM=${MAIL_FROM}
+      - MAIL_TO=${MAIL_TO}
+      - API_URL=${API_URL}
+      - API_KEY=${API_KEY}
+      - HOST_URL=https://server.farbflausen.net:${PORT_CODETREATS_AUTOCOMMIT_HTTP}
+      - TZ=Europe/Berlin
+      - JOB_TITLE=Auto-Commit
+    ports:
+      - ${PORT_CODETREATS_AUTOCOMMIT_HTTP}:443
+    volumes:
+      - /media/nas/docker/common/apache:/apache:ro
+      - /media/nas/docker/data/auto-commit/diffs:/var/www/html/diffs
+      - /media/nas/server/data/git:/git
+    restart: always
+networks:
+  default_network:
+    name: default_network
+    external: true

@@ -8,4 +8,4 @@ PARAMS=$2
 
 # Enter your pipeline steps below
 # Syntax: $RUNSTEP $STATUS <DESCRIPTION> <COMMAND>
-$RUNSTEP $STATUS "Prepare Diff" "/job/diff.sh $STATUS"
+$RUNSTEP $STATUS "Prepare" "/job/run.sh $STATUS $PARAMS"

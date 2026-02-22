@@ -3,6 +3,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
 import { appendFileSync } from "fs";
+import OpenAI from "openai";
 
 interface Change {
     path: string;
@@ -18,6 +19,7 @@ interface RepoStatus {
     path: string;
     timestamp: string;
     changes: Change[];
+    suggestedCommitMessage?: string;
 }
 
 interface SummaryEntry {
@@ -26,10 +28,22 @@ interface SummaryEntry {
     status: string;
     changesCount: number;
     jsonFile: string;
+    suggestedCommitMessage?: string;
 }
 
 const GIT_BASE_DIR = '/git';
 const OUTPUT_DIR = '/var/www/html/diffs';
+const LLM_URL: string = process.env.LLM_URL ?? "";
+const LLM_KEY: string = process.env.LLM_KEY ?? "";
+const LLM_MODEL: string = process.env.LLM_MODEL ?? "";
+
+if (LLM_URL.length < 1) throw new Error("LLM_URL is missing or empty");
+if (LLM_KEY.length < 1) throw new Error("LLM_KEY is missing or empty");
+if (LLM_MODEL.length < 1) throw new Error("LLM_MODEL is missing or empty");
+const openaiClient: OpenAI = new OpenAI({
+    apiKey: LLM_KEY,
+    baseURL: LLM_URL
+});
 
 async function ensureOutputDir(): Promise<void> {
     await fs.ensureDir(OUTPUT_DIR);
@@ -82,6 +96,48 @@ async function isBinaryFile(repoPath: string, filePath: string): Promise<boolean
         return false;
     }
 }
+
+async function generateCommitMessage(repoPath: string, changes: Change[]): Promise<string> {
+    try {
+        const git: SimpleGit = simpleGit(repoPath);
+        const diff = await git.diff(['HEAD']);
+        const LLM_MODEL_NAME: string = "gemini-2.0-flash";
+
+
+        if (!diff || diff.trim().length === 0) {
+            return '';
+        }
+
+        // Diff auf max 8000 Zeichen begrenzen für API
+        const truncatedDiff = diff.length > 8000 ? diff.substring(0, 8000) + '\n... (truncated)' : diff;
+
+        const prompt = `Based on the following git diff, generate a concise commit message (max 100 characters) that describes the changes. Only return the commit message, nothing else. Git diff:\n${truncatedDiff}`;
+
+        const response = await openaiClient.chat.completions.create({
+            model: LLM_MODEL,
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are a helpful assistant that generates concise git commit messages.'
+                },
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ]
+        });
+
+        const message = response.choices[0]?.message?.content?.trim() || '';
+        
+        console.log(`    Generated commit message: "${message}"`);
+        return message;
+
+    } catch (error) {
+        console.warn(`  Warning: Failed to generate commit message: ${error}`);
+        return '';
+    }
+}
+
 
 async function processChanges(repoPath: string, status: StatusResult): Promise<Change[]> {
     const changes: Change[] = [];
@@ -152,13 +208,16 @@ async function analyzeRepo(category: string, repo: string): Promise<RepoStatus> 
 
         if (hasUncommittedChanges) {
             const changes = await processChanges(repoPath, status);
+            const suggestedCommitMessage = await generateCommitMessage(repoPath, changes);
+            
             return {
                 status: 'CHANGED',
                 category,
                 repo,
                 path: repoPath,
                 timestamp: new Date().toISOString(),
-                changes
+                changes,
+                suggestedCommitMessage
             };
         }
 
@@ -205,7 +264,7 @@ async function scanAllRepos(): Promise<void> {
         const categoryPath = path.join(GIT_BASE_DIR, category);
         const stat = await fs.stat(categoryPath);
         
-        if (!stat.isDirectory()) {
+        if (!stat.isDirectory() || category != "backupflausen") {
             continue;
         }
 
@@ -236,7 +295,8 @@ async function scanAllRepos(): Promise<void> {
                     repo,
                     status: repoStatus.status,
                     changesCount: repoStatus.changes.length,
-                    jsonFile: jsonFilename
+                    jsonFile: jsonFilename,
+                    suggestedCommitMessage: repoStatus.suggestedCommitMessage
                 });
                 
                 console.log(`    Status: ${repoStatus.status} (${repoStatus.changes.length} changes)`);

@@ -1,0 +1,26 @@
+Configuration:
+  name: Default
+
+  Appenders:
+    Console:
+      name: Console
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: "%d{HH:mm:ss.SSS} %level [%c] %msg%n"
+      ThresholdFilter:
+        level: info
+        onMatch: ACCEPT
+        onMismatch: DENY
+    
+    File:
+      name: FileAppender
+      fileName: ${sys:extendedlog}
+      PatternLayout:
+        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} %level [%t] %c{1} - %msg%n"
+
+  Loggers:
+    Root:
+      level: trace
+      AppenderRef:
+        - ref: Console
+        - ref: FileAppender

@@ -1,5 +1,3 @@
-```markdown
-<!-- File: g:\codetreats\auto-commit\README.md -->
 # Auto-Commit Repository Scanner
 
 A TypeScript-based tool that scans Git repositories, detects changes, and generates detailed JSON reports with file diffs.
@@ -91,9 +89,9 @@ Each repository generates a JSON file with the following structure:
 ```json
 {
   "status": "UPTODATE",
-  "category": "farbflausen",
-  "repo": "sync-orders",
-  "path": "/git/farbflausen/sync-orders",
+  "category": "others",
+  "repo": "sync-it",
+  "path": "/git/others/sync-it",
   "timestamp": "2024-01-15T14:30:47.456Z",
   "changes": []
 }
@@ -105,8 +103,8 @@ Each repository generates a JSON file with the following structure:
 {
   "status": "UNPUSHED",
   "category": "codetreats",
-  "repo": "sevdesk-proxy",
-  "path": "/git/codetreats/sevdesk-proxy",
+  "repo": "sevdesk-kotlin",
+  "path": "/git/codetreats/sevdesk-kotlin",
   "timestamp": "2024-01-15T14:30:48.789Z",
   "changes": []
 }
@@ -139,18 +137,18 @@ The `summary.json` file provides an overview of all scanned repositories:
     "jsonFile": "codetreats_auto-commit.json"
   },
   {
-    "category": "farbflausen",
+    "category": "others",
     "repo": "sync-orders",
     "status": "UPTODATE",
     "changesCount": 0,
-    "jsonFile": "farbflausen_sync-orders.json"
+    "jsonFile": "others_sync-it.json"
   },
   {
     "category": "codetreats",
     "repo": "sevdesk-proxy",
     "status": "UNPUSHED",
     "changesCount": 0,
-    "jsonFile": "codetreats_sevdesk-proxy.json"
+    "jsonFile": "codetreats_sevdesk-kotlin.json"
   },
   {
     "category": "projects",

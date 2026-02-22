@@ -38,8 +38,17 @@ class Committer(
                 val git = gitService.openRepository(repoPath)
                 gitService.addAll(git)
                 gitService.commit(git, commit.message())
+                logger.info("Successfully committed: ${commit.category}/${commit.repo}")
+            }
+        }
+        categories.forEach { category ->
+            stepRunner.logStep("Push $category")
+            commits.filter { it.category == category }.forEach { commit ->
+                logger.info("Pushing: ${commit.category}/${commit.repo}: ${commit.message}")
+                val repoPath = File("/git/${commit.category}/${commit.repo}")
+                val git = gitService.openRepository(repoPath)
                 gitService.push(git)
-                logger.info("Successfully committed and pushed: ${commit.category}/${commit.repo}")
+                logger.info("Successfully pushed: ${commit.category}/${commit.repo}")
             }
         }
     }
